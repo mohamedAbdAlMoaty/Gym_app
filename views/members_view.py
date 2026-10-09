@@ -56,13 +56,18 @@ class MembersView:
         text = self.search_entry.get().strip().lower()
         wanted = self.status_filter.get()
 
+        if text:
+            members = Json_manager().search_on_members(text)
+        else:
+            members = Json_manager().All_members()
+
         rows=[]
-        for member in Json_manager().All_members():
-            # if member.get_name == text or member.get_member_id == text or member.get_email== text or member.get_phone == text:
-                 
+        for member in members:
+
                 trainer = Json_manager().get_trainer_by_ID(member.get_trainer_id())
                 trainer_name = trainer.get_name() if trainer else "No trainer"
                 rows.append((member.get_member_id(),member.get_name(),member.get_phone(),member.get_email(),trainer_name,"test"))
+               
 
 
 

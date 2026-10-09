@@ -21,7 +21,6 @@ class Trainer:
 
     def get_specialization(self):
         return self.__specialization
-
  
     def set_trainer_id(self, value):
         self.__trainer_id = value
