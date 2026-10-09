@@ -67,10 +67,11 @@ class MembersView:
                 trainer = Json_manager().get_trainer_by_ID(member.get_trainer_id())
                 trainer_name = trainer.get_name() if trainer else "No trainer"
                 rows.append((member.get_member_id(),member.get_name(),member.get_phone(),member.get_email(),trainer_name,"test"))
+
+
+
+
                
-
-
-
 
 
 
@@ -108,15 +109,9 @@ class MembersView:
 
 
 
-        # get = (lambda key: member.get(key, "")) if editing else (lambda key: "")
 
-        # name = add_entry(window, "Name", get("name"))
-        # phone = add_entry(window, "Phone", get("phone"))
-        # email = add_entry(window, "Email", get("email"))
-        # dob = add_entry(window, "Date of Birth (YYYY-MM-DD)", get("date_of_birth"))
-        # gender = add_combo(window, "Gender", ["Male", "Female"], get("gender") or None)
-        # trainer = add_combo(window, "Trainer", trainer_choices(),
-        #                     trainer_choice_for(get("trainer_id")) if editing else "Unassigned")
+
+
 
         add_save_button(window, "Save Changes" if editing else "Save Member",
                         lambda: self.save_member(window, member, name, phone, email, dob, gender, trainer))
