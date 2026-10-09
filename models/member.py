@@ -1,53 +1,68 @@
-class member():
-  
-    def __init__(self,member_id,name,phone,email,date_of_birth,gender,trainer_id):
-        self.__member_id = member_id
-        self.__name = name
-        self.__phone = phone
-        self.__email = email
+from models.person import Person
+
+
+class Member(Person):
+    def __init__(
+        self,
+        member_id: str,
+        name: str,
+        phone: str,
+        email: str,
+        date_of_birth: str,
+        gender: str,
+        trainer_id: str | None = None,
+    ):
+        super().__init__(member_id, name, phone, email)
+
         self.__date_of_birth = date_of_birth
         self.__gender = gender
         self.__trainer_id = trainer_id
 
+    @property
+    def member_id(self) -> str:
+        return self.person_id
 
-    def get_member_id(self):
-        return self.__member_id
-
-    def set_member_id(self, member_id):
-        self.__member_id = member_id
-
-    def get_name(self):
-        return self.__name
-
-    def set_name(self, name):
-        self.__name = name
-
-    def get_phone(self):
-        return self.__phone
-
-    def set_phone(self, phone):
-        self.__phone = phone
-
-    def get_email(self):
-        return self.__email
-
-    def set_email(self, email):
-        self.__email = email
-
-    def get_date_of_birth(self):
+    @property
+    def date_of_birth(self) -> str:
         return self.__date_of_birth
 
-    def set_date_of_birth(self, date_of_birth):
-        self.__date_of_birth = date_of_birth
+    @date_of_birth.setter
+    def date_of_birth(self, value: str) -> None:
+        self.__date_of_birth = value
 
-    def get_gender(self):
+    @property
+    def gender(self) -> str:
         return self.__gender
 
-    def set_gender(self, gender):
-        self.__gender = gender
+    @gender.setter
+    def gender(self, value: str) -> None:
+        self.__gender = value
 
-    def get_trainer_id(self):
+    @property
+    def trainer_id(self) -> str | None:
         return self.__trainer_id
 
-    def set_trainer_id(self, trainer_id):
-        self.__trainer_id = trainer_id
+    @trainer_id.setter
+    def trainer_id(self, value: str | None) -> None:
+        self.__trainer_id = value
+
+    def assign_trainer(self, trainer_id: str) -> None:
+        self.trainer_id = trainer_id
+
+    def remove_trainer(self) -> None:
+        self.trainer_id = None
+
+    def display_info(self) -> str:
+        return f"Member: {self.name} - ID: {self.member_id}"
+
+    def to_dict(self) -> dict:
+
+        return {
+            "member_id": self.member_id,
+            "name": self.name,
+            "phone": self.phone,
+            "email": self.email,
+            "date_of_birth": self.date_of_birth,
+            "gender": self.gender,
+            "trainer_id": self.trainer_id,
+        }
