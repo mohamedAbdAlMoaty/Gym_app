@@ -33,6 +33,9 @@ class Json_manager:
             for m in self.read_from_json_file("members")
         ]
 
+    def search_on_members(self,text):
+        return [ member(m["member_id"],m["name"],m["phone"],m["email"],m["date_of_birth"],m["gender"],m["trainer_id"]) for m in self.read_from_json_file("members") if (text in m["member_id"].lower() or text in m["name"].lower() or text in m["phone"] or text in m["email"].lower())]
+
     def All_trainers(self):
         return [
             Trainer(
