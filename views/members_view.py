@@ -90,23 +90,33 @@ class MembersView:
         if not member_id:
             messagebox.showwarning("Edit Member", "Please select a member first.")
             return
-        # get the member that been selected and send him to form to be edit
-        self.member_form(storage.get_member(member_id))
+
+        self.member_form(Json_manager().get_member_by_ID(member_id))
 
     def member_form(self, member=None):
         editing = member is not None
         window = open_dialog(self.parent, "Edit Member" if editing else "Add New Member", "450x680")
         dialog_title(window, "Edit Member" if editing else "Add New Member")
 
-        get = (lambda key: member.get(key, "")) if editing else (lambda key: "")
-
-        name = add_entry(window, "Name", get("name"))
-        phone = add_entry(window, "Phone", get("phone"))
-        email = add_entry(window, "Email", get("email"))
-        dob = add_entry(window, "Date of Birth (YYYY-MM-DD)", get("date_of_birth"))
-        gender = add_combo(window, "Gender", ["Male", "Female"], get("gender") or None)
+        name = add_entry(window, "Name", member.get_name() if member else " ")
+        phone = add_entry(window, "Phone", member.get_phone() if member else " ")
+        email = add_entry(window, "Email", member.get_email() if member else " ")
+        dob = add_entry(window, "Date of Birth (YYYY-MM-DD)", member.get_date_of_birth()if member else " ")
+        gender = add_combo(window, "Gender", ["Male", "Female"], member.get_gender()if member else " " or None)
         trainer = add_combo(window, "Trainer", trainer_choices(),
-                            trainer_choice_for(get("trainer_id")) if editing else "Unassigned")
+                            trainer_choice_for(member.get_trainer_id() if member else " ") if editing else "Unassigned")
+
+
+
+        # get = (lambda key: member.get(key, "")) if editing else (lambda key: "")
+
+        # name = add_entry(window, "Name", get("name"))
+        # phone = add_entry(window, "Phone", get("phone"))
+        # email = add_entry(window, "Email", get("email"))
+        # dob = add_entry(window, "Date of Birth (YYYY-MM-DD)", get("date_of_birth"))
+        # gender = add_combo(window, "Gender", ["Male", "Female"], get("gender") or None)
+        # trainer = add_combo(window, "Trainer", trainer_choices(),
+        #                     trainer_choice_for(get("trainer_id")) if editing else "Unassigned")
 
         add_save_button(window, "Save Changes" if editing else "Save Member",
                         lambda: self.save_member(window, member, name, phone, email, dob, gender, trainer))

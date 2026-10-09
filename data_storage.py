@@ -30,6 +30,9 @@ class Json_manager():
 
     def All_trainers(self):
         return [ Trainer(t["trainer_id"],t["name"],t["phone"],t["email"],t["specialization"]) for t in (self.read_from_json_file("trainers"))]
+    
+    def get_member_by_ID(self, id):
+        return next ((member(m["member_id"],m["name"],m["phone"],m["email"],m["date_of_birth"],m["gender"],m["trainer_id"]) for m in self.read_from_json_file("members") if m["member_id"] == id),None)
 
     def get_trainer_by_ID(self, id):
         return next((Trainer(t["trainer_id"], t["name"], t["phone"], t["email"], t["specialization"])for t in self.read_from_json_file("trainers")if t["trainer_id"] == id),None)
