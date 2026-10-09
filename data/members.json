@@ -36,12 +36,12 @@
     "trainer_id": "T001"
   },
   {
-    "member_id": "M005",
-    "name": "Lina Omar",
-    "phone": "01744444444",
-    "email": "lina.omar@gmail.com",
-    "date_of_birth": "1997-09-12",
-    "gender": "Female",
-    "trainer_id": "T002"
+    "member_id": "M006",
+    "name": "Ahmed Sameh",
+    "phone": "01552060562",
+    "email": "as21548@gmail.com",
+    "date_of_birth": "2000-10-14",
+    "gender": "Male",
+    "trainer_id": ""
   }
 ]
