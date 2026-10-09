@@ -1,0 +1,37 @@
+[
+  {
+    "membership_id": "MS001",
+    "member_id": "M001",
+    "plan": "Monthly",
+    "start_date": "2026-10-01",
+    "end_date": "2026-10-31"
+  },
+  {
+    "membership_id": "MS002",
+    "member_id": "M002",
+    "plan": "3 Months",
+    "start_date": "2026-09-01",
+    "end_date": "2026-11-30"
+  },
+  {
+    "membership_id": "MS003",
+    "member_id": "M003",
+    "plan": "Monthly",
+    "start_date": "2026-08-01",
+    "end_date": "2026-08-31"
+  },
+  {
+    "membership_id": "MS004",
+    "member_id": "M004",
+    "plan": "6 Months",
+    "start_date": "2026-07-01",
+    "end_date": "2026-12-31"
+  },
+  {
+    "membership_id": "MS005",
+    "member_id": "M005",
+    "plan": "Monthly",
+    "start_date": "2026-10-01",
+    "end_date": "2026-10-31"
+  }
+]

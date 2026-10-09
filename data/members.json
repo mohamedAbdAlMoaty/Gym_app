@@ -1,0 +1,47 @@
+[
+  {
+    "member_id": "M001",
+    "name": "Ahmed Ali",
+    "phone": "01712345678",
+    "email": "ahmed.ali@gmail.com",
+    "date_of_birth": "1995-03-15",
+    "gender": "Male",
+    "trainer_id": "T001"
+  },
+  {
+    "member_id": "M002",
+    "name": "Mohamed Hassan",
+    "phone": "01798765432",
+    "email": "mohamed.hassan@gmail.com",
+    "date_of_birth": "1992-07-20",
+    "gender": "Male",
+    "trainer_id": "T002"
+  },
+  {
+    "member_id": "M003",
+    "name": "Sara Ahmed",
+    "phone": "01755555555",
+    "email": "sara.ahmed@gmail.com",
+    "date_of_birth": "1998-11-10",
+    "gender": "Female",
+    "trainer_id": "T003"
+  },
+  {
+    "member_id": "M004",
+    "name": "John Smith",
+    "phone": "01733333333",
+    "email": "john.smith@gmail.com",
+    "date_of_birth": "1990-05-25",
+    "gender": "Male",
+    "trainer_id": "T001"
+  },
+  {
+    "member_id": "M005",
+    "name": "Lina Omar",
+    "phone": "01744444444",
+    "email": "lina.omar@gmail.com",
+    "date_of_birth": "1997-09-12",
+    "gender": "Female",
+    "trainer_id": "T002"
+  }
+]

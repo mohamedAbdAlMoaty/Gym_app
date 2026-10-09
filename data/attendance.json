@@ -1,0 +1,44 @@
+[
+  {
+    "attendance_id": "A001",
+    "member_id": "M001",
+    "date": "2026-10-05",
+    "check_in": "09:15",
+    "check_out": "10:45"
+  },
+  {
+    "attendance_id": "A002",
+    "member_id": "M002",
+    "date": "2026-10-05",
+    "check_in": "10:30",
+    "check_out": "12:00"
+  },
+  {
+    "attendance_id": "A003",
+    "member_id": "M001",
+    "date": "2026-10-06",
+    "check_in": "09:20",
+    "check_out": "10:50"
+  },
+  {
+    "attendance_id": "A004",
+    "member_id": "M004",
+    "date": "2026-10-06",
+    "check_in": "18:00",
+    "check_out": "19:30"
+  },
+  {
+    "attendance_id": "A005",
+    "member_id": "M005",
+    "date": "2026-10-06",
+    "check_in": "17:30",
+    "check_out": "18:45"
+  },
+  {
+    "attendance_id": "A006",
+    "member_id": "M001",
+    "date": "2026-10-08",
+    "check_in": "16:39",
+    "check_out": ""
+  }
+]

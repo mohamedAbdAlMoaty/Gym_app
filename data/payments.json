@@ -1,0 +1,42 @@
+[
+  {
+    "payment_id": "P001",
+    "member_id": "M001",
+    "membership_id": "MS001",
+    "amount": 50.0,
+    "payment_date": "2026-10-01",
+    "payment_method": "Cash"
+  },
+  {
+    "payment_id": "P002",
+    "member_id": "M002",
+    "membership_id": "MS002",
+    "amount": 120.0,
+    "payment_date": "2026-09-01",
+    "payment_method": "Card"
+  },
+  {
+    "payment_id": "P003",
+    "member_id": "M003",
+    "membership_id": "MS003",
+    "amount": 50.0,
+    "payment_date": "2026-08-01",
+    "payment_method": "Cash"
+  },
+  {
+    "payment_id": "P004",
+    "member_id": "M004",
+    "membership_id": "MS004",
+    "amount": 250.0,
+    "payment_date": "2026-07-01",
+    "payment_method": "Card"
+  },
+  {
+    "payment_id": "P005",
+    "member_id": "M005",
+    "membership_id": "MS005",
+    "amount": 50.0,
+    "payment_date": "2026-10-01",
+    "payment_method": "Bank Transfer"
+  }
+]

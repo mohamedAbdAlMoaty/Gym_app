@@ -1,0 +1,30 @@
+[
+  {
+    "trainer_id": "T001",
+    "name": "Ahmed Khaled",
+    "phone": "01711111111",
+    "email": "ahmed.trainer@gmail.com",
+    "specialization": "Weight Training"
+  },
+  {
+    "trainer_id": "T002",
+    "name": "Omar Hassan",
+    "phone": "01722222222",
+    "email": "omar.trainer@gmail.com",
+    "specialization": "Cardio"
+  },
+  {
+    "trainer_id": "T003",
+    "name": "Sara Mohamed",
+    "phone": "01733333333",
+    "email": "sara.trainer@gmail.com",
+    "specialization": "Yoga"
+  },
+  {
+    "trainer_id": "T004",
+    "name": "ali",
+    "phone": "017656431",
+    "email": "aLI@LGCgroup.com",
+    "specialization": "runner"
+  }
+]
