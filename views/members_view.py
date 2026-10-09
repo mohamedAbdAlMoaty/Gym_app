@@ -135,8 +135,8 @@ class MembersView:
         if not member_id:
             messagebox.showwarning("Edit Member", "Please select a member first.")
             return
-        # get the member that been selected and send him to form to be edit
-        self.member_form(storage.get_member(member_id))
+
+        self.member_form(Json_manager().get_member_by_ID(member_id))
 
     def member_form(self, member=None):
         editing = member is not None
