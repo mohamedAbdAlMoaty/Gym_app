@@ -49,5 +49,12 @@ class member():
     def get_trainer_id(self):
         return self.__trainer_id
 
+
+
+
+
+
+
+
     def set_trainer_id(self, trainer_id):
         self.__trainer_id = trainer_id
