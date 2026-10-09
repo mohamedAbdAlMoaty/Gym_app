@@ -10,6 +10,11 @@ class member():
         self.__trainer_id = trainer_id
 
 
+
+
+
+
+
     def get_member_id(self):
         return self.__member_id
 
@@ -51,10 +56,8 @@ class member():
 
 
 
-
-
-
-
-
     def set_trainer_id(self, trainer_id):
         self.__trainer_id = trainer_id
+
+    def test(self):
+        return self.get_name    
