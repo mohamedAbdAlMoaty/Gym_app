@@ -128,6 +128,8 @@ class MembersView:
 
         # check the format of email and names,... and save the data after
 
+        Json_manager().append_on_json_file("members", fields) 
+
 
 
         window.destroy()
