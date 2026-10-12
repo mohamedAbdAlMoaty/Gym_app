@@ -1,6 +1,7 @@
 import calendar
 import json
 from datetime import date, datetime, timedelta
+from models.payment import Payment
 from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
@@ -11,12 +12,13 @@ PLANS = {
     "3 Months": {"months": 3, "price": 120.0},
     "6 Months": {"months": 6, "price": 250.0},
 }
-PAYMENT_METHODS = ["Cash", "Card", "Bank Transfer"]
+PAYMENT_METHODS = list(Payment.ALLOWED_METHODS)
 
 
 # =========================
 # FILE ACCESS
 # =========================
+
 
 def _path(name):
     return DATA_DIR / f"{name}.json"
@@ -51,14 +53,15 @@ def next_id(name, key, prefix, width=3):
     highest = 0
     for item in load(name):
         value = str(item.get(key, ""))
-        if value.startswith(prefix) and value[len(prefix):].isdigit():
-            highest = max(highest, int(value[len(prefix):]))
+        if value.startswith(prefix) and value[len(prefix) :].isdigit():
+            highest = max(highest, int(value[len(prefix) :]))
     return f"{prefix}{highest + 1:0{width}d}"
 
 
 # =========================
 # DATES / FORMATTING
 # =========================
+
 
 def today_str():
     return date.today().strftime(DATE_FORMAT)
@@ -94,6 +97,7 @@ def money(amount):
 # LOOKUPS
 # =========================
 
+
 def get_member(member_id):
     return next((m for m in load("members") if m["member_id"] == member_id), None)
 
@@ -116,6 +120,7 @@ def trainer_name(trainer_id):
 # MEMBERSHIPS
 # =========================
 
+
 def membership_status(membership):
     end = parse_date(membership["end_date"])
     return "Active" if end and end >= date.today() else "Expired"
@@ -136,7 +141,9 @@ def member_status(member_id, memberships=None):
     owned = member_memberships(member_id, memberships)
     if not owned:
         return "No Membership"
-    return "Active" if any(membership_status(m) == "Active" for m in owned) else "Expired"
+    return (
+        "Active" if any(membership_status(m) == "Active" for m in owned) else "Expired"
+    )
 
 
 def renewal_start(member_id):
@@ -165,7 +172,13 @@ def create_membership(member_id, plan, start, method, amount=None):
     memberships.append(membership)
     save("memberships", memberships)
 
-    payment = add_payment(member_id, membership["membership_id"], amount, start.strftime(DATE_FORMAT), method)
+    payment = add_payment(
+        member_id,
+        membership["membership_id"],
+        amount,
+        start.strftime(DATE_FORMAT),
+        method,
+    )
     return membership, payment
 
 
@@ -173,18 +186,48 @@ def create_membership(member_id, plan, start, method, amount=None):
 # PAYMENTS
 # =========================
 
-def add_payment(member_id, membership_id, amount, payment_date, method):
-    payment = {
-        "payment_id": next_id("payments", "payment_id", "P"),
-        "member_id": member_id,
-        "membership_id": membership_id,
-        "amount": float(amount),
-        "payment_date": payment_date,
-        "payment_method": method,
-    }
+
+def add_payment(
+    member_id: str,
+    membership_id: str,
+    amount: float,
+    payment_date: str,
+    method: str,
+) -> Payment:
+
+    if not get_member(member_id):
+        raise ValueError("Member does not exist")
+
+    membership = next(
+        (
+            item
+            for item in load("memberships")
+            if item["membership_id"] == membership_id
+        ),
+        None,
+    )
+
+    if membership is None:
+        raise ValueError("Membership does not exist")
+
+    if membership["member_id"] != member_id:
+        raise ValueError("Membership does not belong to this member")
+
+    payment = Payment(
+        payment_id=next_id("payments", "payment_id", "P"),
+        member_id=member_id,
+        membership_id=membership_id,
+        amount=amount,
+        payment_date=payment_date,
+        payment_method=method,
+    )
+
     payments = load("payments")
-    payments.append(payment)
+
+    payments.append(payment.to_dict())
+
     save("payments", payments)
+
     return payment
 
 
@@ -192,10 +235,17 @@ def add_payment(member_id, membership_id, amount, payment_date, method):
 # ATTENDANCE
 # =========================
 
+
 def open_attendance(member_id):
     """The member's attendance record that has no check-out yet, if any."""
-    return next((a for a in load("attendance")
-                 if a["member_id"] == member_id and not a.get("check_out")), None)
+    return next(
+        (
+            a
+            for a in load("attendance")
+            if a["member_id"] == member_id and not a.get("check_out")
+        ),
+        None,
+    )
 
 
 def add_attendance(member_id, day, check_in):

@@ -18,15 +18,6 @@
     "trainer_id": "T002"
   },
   {
-    "member_id": "M003",
-    "name": "Sara Ahmed",
-    "phone": "01755555555",
-    "email": "sara.ahmed@gmail.com",
-    "date_of_birth": "1998-11-10",
-    "gender": "Female",
-    "trainer_id": "T003"
-  },
-  {
     "member_id": "M004",
     "name": "John Smith",
     "phone": "01733333333",
@@ -43,5 +34,23 @@
     "date_of_birth": "2000-10-14",
     "gender": "Male",
     "trainer_id": ""
+  },
+  {
+    "member_id": "M007",
+    "name": "ahmed omar",
+    "phone": "01552070055",
+    "email": "dj1458@gmail.com",
+    "date_of_birth": "1999-12-12",
+    "gender": "Male",
+    "trainer_id": ""
+  },
+  {
+    "member_id": "M008",
+    "name": "mai ali",
+    "phone": "0122050059",
+    "email": "mi1458@gmail.com",
+    "date_of_birth": "2005-09-15",
+    "gender": "Female",
+    "trainer_id": "T001"
   }
 ]
