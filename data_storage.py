@@ -1,6 +1,7 @@
 import json
 from models.member import Member
 from models.trainer import Trainer
+from models.payment import Payment
 from pathlib import Path
 
 
@@ -84,4 +85,11 @@ class Json_manager:
         return [
             f"{m['member_id']} - {m['name']}"
             for m in (self.read_from_json_file("members"))
+        ]
+
+    def All_payments(self):
+
+        return [
+            Payment.from_dict(payment)
+            for payment in self.read_from_json_file("payments")
         ]
