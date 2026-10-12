@@ -91,37 +91,28 @@ class MembersView:
         text = self.search_entry.get().strip().lower()
         wanted = self.status_filter.get()
 
-        rows = []
+        if text:
+            members = Json_manager().search_on_members(text)
+        else:
+            members = Json_manager().All_members()
 
-        for member in Json_manager().All_members():
-            trainer = Json_manager().get_trainer_by_ID(member.trainer_id)
+        rows=[]
+        for member in members:
 
-            trainer_name = trainer.name if trainer else "No trainer"
+                trainer = Json_manager().get_trainer_by_ID(member.get_trainer_id())
+                trainer_name = trainer.get_name() if trainer else "No trainer"
+                rows.append((member.get_member_id(),member.get_name(),member.get_phone(),member.get_email(),trainer_name,"test"))
 
-            searchable_text = (
-                f"{member.member_id} {member.name} {member.phone} {member.email}"
-            ).lower()
 
-            if text and text not in searchable_text:
-                continue
 
-            status = storage.member_status(member.member_id)
 
-            if wanted != "All" and status != wanted:
-                continue
+               
 
-            rows.append(
-                (
-                    member.member_id,
-                    member.name,
-                    member.phone,
-                    member.email,
-                    trainer_name,
-                    status,
-                )
-            )
 
-        fill_table(self.member_table, rows)
+
+
+ 
+        fill_table(self.member_table,rows )
 
     # =========================
     # ADD / EDIT
@@ -145,19 +136,19 @@ class MembersView:
         )
         dialog_title(window, "Edit Member" if editing else "Add New Member")
 
-        get = (lambda key: member.get(key, "")) if editing else (lambda key: "")
+        name = add_entry(window, "Name", member.get_name() if member else " ")
+        phone = add_entry(window, "Phone", member.get_phone() if member else " ")
+        email = add_entry(window, "Email", member.get_email() if member else " ")
+        dob = add_entry(window, "Date of Birth (YYYY-MM-DD)", member.get_date_of_birth()if member else " ")
+        gender = add_combo(window, "Gender", ["Male", "Female"], member.get_gender()if member else " " or None)
+        trainer = add_combo(window, "Trainer", trainer_choices(),
+                            trainer_choice_for(member.get_trainer_id() if member else " ") if editing else "Unassigned")
 
-        name = add_entry(window, "Name", get("name"))
-        phone = add_entry(window, "Phone", get("phone"))
-        email = add_entry(window, "Email", get("email"))
-        dob = add_entry(window, "Date of Birth (YYYY-MM-DD)", get("date_of_birth"))
-        gender = add_combo(window, "Gender", ["Male", "Female"], get("gender") or None)
-        trainer = add_combo(
-            window,
-            "Trainer",
-            trainer_choices(),
-            trainer_choice_for(get("trainer_id")) if editing else "Unassigned",
-        )
+
+
+
+
+
 
         add_save_button(
             window,
