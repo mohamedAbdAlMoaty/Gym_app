@@ -2,6 +2,7 @@ import json
 from models.member import Member
 from models.trainer import Trainer
 from models.payment import Payment
+from models.membership import Membership
 from pathlib import Path
 
 
@@ -92,4 +93,11 @@ class Json_manager:
         return [
             Payment.from_dict(payment)
             for payment in self.read_from_json_file("payments")
+        ]
+
+    def All_memberships(self):
+
+        return [
+            Membership.from_dict(membership)
+            for membership in self.read_from_json_file("memberships")
         ]

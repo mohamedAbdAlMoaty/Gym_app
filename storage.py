@@ -1,17 +1,38 @@
 import calendar
 import json
+
 from datetime import date, datetime, timedelta
-from models.payment import Payment
 from pathlib import Path
 
+from models.payment import Payment
+from models.membership import Membership
+
+
+# =========================
+# CONFIGURATION
+# =========================
+
 DATA_DIR = Path(__file__).resolve().parent / "data"
+
 DATE_FORMAT = "%Y-%m-%d"
 
+
 PLANS = {
-    "Monthly": {"months": 1, "price": 50.0},
-    "3 Months": {"months": 3, "price": 120.0},
-    "6 Months": {"months": 6, "price": 250.0},
+    "Monthly": {
+        "months": 1,
+        "price": 50.0,
+    },
+    "3 Months": {
+        "months": 3,
+        "price": 120.0,
+    },
+    "6 Months": {
+        "months": 6,
+        "price": 250.0,
+    },
 }
+
+
 PAYMENT_METHODS = list(Payment.ALLOWED_METHODS)
 
 
@@ -20,166 +41,432 @@ PAYMENT_METHODS = list(Payment.ALLOWED_METHODS)
 # =========================
 
 
-def _path(name):
+def _path(name: str) -> Path:
     return DATA_DIR / f"{name}.json"
 
 
-def load(name):
-    """Return the list stored in data/<name>.json ([] if missing/empty)."""
+def load(name: str) -> list:
+    """
+    Load data from data/<name>.json.
+
+    Returns an empty list if:
+    - the file does not exist
+    - the file is empty
+    """
+
     path = _path(name)
+
     if not path.exists():
         return []
+
     try:
         text = path.read_text(encoding="utf-8").strip()
+
         if not text:
             return []
+
         data = json.loads(text)
+
     except json.JSONDecodeError:
-        # Keep the broken file instead of silently overwriting it later.
-        path.replace(path.with_suffix(".corrupt.json"))
+        corrupt_path = path.with_suffix(".corrupt.json")
+
+        path.replace(corrupt_path)
+
         return []
+
     return data if isinstance(data, list) else []
 
 
-def save(name, items):
+def save(name: str, items: list) -> None:
+    """
+    Save list data safely to JSON.
+    """
+
     DATA_DIR.mkdir(exist_ok=True)
-    tmp = _path(name).with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(items, f, indent=2, ensure_ascii=False)
-    tmp.replace(_path(name))  # atomic: never leaves a half-written file
+
+    path = _path(name)
+
+    temp_path = path.with_suffix(".tmp")
+
+    with open(temp_path, "w", encoding="utf-8") as file:
+        json.dump(items, file, indent=2, ensure_ascii=False)
+
+    temp_path.replace(path)
 
 
-def next_id(name, key, prefix, width=3):
+# =========================
+# ID GENERATION
+# =========================
+
+
+def next_id(name: str, key: str, prefix: str, width: int = 3) -> str:
+
     highest = 0
+
     for item in load(name):
         value = str(item.get(key, ""))
+
         if value.startswith(prefix) and value[len(prefix) :].isdigit():
-            highest = max(highest, int(value[len(prefix) :]))
+            number = int(value[len(prefix) :])
+
+            highest = max(highest, number)
+
     return f"{prefix}{highest + 1:0{width}d}"
 
 
 # =========================
-# DATES / FORMATTING
+# DATE / TIME HELPERS
 # =========================
 
 
-def today_str():
+def today_str() -> str:
+
     return date.today().strftime(DATE_FORMAT)
 
 
 def parse_date(text):
-    """Return a date, or None if text is not YYYY-MM-DD."""
+    """
+    Convert YYYY-MM-DD text to date.
+
+    Returns None if invalid.
+    """
+
     try:
         return datetime.strptime(text.strip(), DATE_FORMAT).date()
-    except (ValueError, AttributeError):
+
+    except (ValueError, AttributeError, TypeError):
         return None
 
 
 def parse_time(text):
-    """Return 'HH:MM' (normalised), or None if invalid."""
+    """
+    Validate time and return HH:MM.
+    """
+
     try:
         return datetime.strptime(text.strip(), "%H:%M").strftime("%H:%M")
-    except (ValueError, AttributeError):
+
+    except (ValueError, AttributeError, TypeError):
         return None
 
 
-def add_months(d, months):
-    index = d.month - 1 + months
-    year, month = d.year + index // 12, index % 12 + 1
-    return date(year, month, min(d.day, calendar.monthrange(year, month)[1]))
+def add_months(current_date: date, months: int) -> date:
+
+    index = current_date.month - 1 + months
+
+    year = current_date.year + index // 12
+
+    month = index % 12 + 1
+
+    day = min(current_date.day, calendar.monthrange(year, month)[1])
+
+    return date(year, month, day)
 
 
-def money(amount):
+def money(amount) -> str:
+
     return f"€{float(amount):,.2f}"
 
 
 # =========================
-# LOOKUPS
+# MEMBER LOOKUPS
 # =========================
 
 
-def get_member(member_id):
-    return next((m for m in load("members") if m["member_id"] == member_id), None)
+def get_member(member_id: str):
+
+    return next(
+        (member for member in load("members") if (member["member_id"] == member_id)),
+        None,
+    )
 
 
-def member_name(member_id):
+def member_name(member_id: str) -> str:
+
     member = get_member(member_id)
+
     return member["name"] if member else member_id
 
 
-def get_trainer(trainer_id):
-    return next((t for t in load("trainers") if t["trainer_id"] == trainer_id), None)
+# =========================
+# TRAINER LOOKUPS
+# =========================
 
 
-def trainer_name(trainer_id):
+def get_trainer(trainer_id: str):
+
+    return next(
+        (
+            trainer
+            for trainer in load("trainers")
+            if (trainer["trainer_id"] == trainer_id)
+        ),
+        None,
+    )
+
+
+def trainer_name(trainer_id: str) -> str:
+
     trainer = get_trainer(trainer_id)
+
     return trainer["name"] if trainer else "Unassigned"
 
 
 # =========================
-# MEMBERSHIPS
+# MEMBERSHIP LOOKUPS
 # =========================
 
 
-def membership_status(membership):
-    end = parse_date(membership["end_date"])
-    return "Active" if end and end >= date.today() else "Expired"
+def get_membership(membership_id: str):
 
-
-def member_memberships(member_id, memberships=None):
-    memberships = load("memberships") if memberships is None else memberships
-    return [m for m in memberships if m["member_id"] == member_id]
-
-
-def latest_membership(member_id, memberships=None):
-    owned = member_memberships(member_id, memberships)
-    return max(owned, key=lambda m: m["end_date"]) if owned else None
-
-
-def member_status(member_id, memberships=None):
-    """'Active' if any membership is still valid, 'Expired' if all ended, else 'No Membership'."""
-    owned = member_memberships(member_id, memberships)
-    if not owned:
-        return "No Membership"
-    return (
-        "Active" if any(membership_status(m) == "Active" for m in owned) else "Expired"
+    return next(
+        (
+            membership
+            for membership in load("memberships")
+            if (membership["membership_id"] == membership_id)
+        ),
+        None,
     )
 
 
-def renewal_start(member_id):
-    """Day after the current membership ends, or today if it already ended / none exists."""
+def member_memberships(member_id: str, memberships=None) -> list:
+
+    if memberships is None:
+        memberships = load("memberships")
+
+    return [
+        membership
+        for membership in memberships
+        if (membership["member_id"] == member_id)
+    ]
+
+
+def latest_membership(member_id: str, memberships=None):
+
+    owned = member_memberships(member_id, memberships)
+
+    if not owned:
+        return None
+
+    return max(owned, key=lambda membership: membership["end_date"])
+
+
+# =========================
+# MEMBERSHIP STATUS
+# =========================
+
+
+def membership_status(membership: dict) -> str:
+    """
+    Returns:
+    - Upcoming
+    - Active
+    - Expired
+    - Invalid
+    """
+
+    try:
+        membership_object = Membership.from_dict(membership)
+
+        return membership_object.status
+
+    except (KeyError, ValueError):
+        return "Invalid"
+
+
+def member_status(member_id: str, memberships=None) -> str:
+    """
+    Returns the overall membership
+    status of a member.
+    """
+
+    owned = member_memberships(member_id, memberships)
+
+    if not owned:
+        return "No Membership"
+
+    statuses = [membership_status(membership) for membership in owned]
+
+    if "Active" in statuses:
+        return "Active"
+
+    if "Upcoming" in statuses:
+        return "Upcoming"
+
+    return "Expired"
+
+
+# =========================
+# MEMBERSHIP RENEWAL
+# =========================
+
+
+def renewal_start(member_id: str) -> date:
+    """
+    If the latest membership is still
+    active/upcoming, renewal starts the
+    day after its end date.
+
+    Otherwise renewal starts today.
+    """
+
     latest = latest_membership(member_id)
+
     if latest:
-        end = parse_date(latest["end_date"])
-        if end and end >= date.today():
-            return end + timedelta(days=1)
+        end_date = parse_date(latest["end_date"])
+
+        if end_date and end_date >= date.today():
+            return end_date + timedelta(days=1)
+
     return date.today()
 
 
-def create_membership(member_id, plan, start, method, amount=None):
-    """Create a membership AND its payment. Used for both new memberships and renewals."""
-    end = add_months(start, PLANS[plan]["months"]) - timedelta(days=1)
-    amount = PLANS[plan]["price"] if amount is None else amount
+# =========================
+# MEMBERSHIP OVERLAP
+# =========================
 
-    membership = {
-        "membership_id": next_id("memberships", "membership_id", "MS"),
-        "member_id": member_id,
-        "plan": plan,
-        "start_date": start.strftime(DATE_FORMAT),
-        "end_date": end.strftime(DATE_FORMAT),
-    }
+
+def has_membership_overlap(member_id: str, new_start: date, new_end: date) -> bool:
+    """
+    Prevent a member from having
+    overlapping membership periods.
+    """
+
+    memberships = member_memberships(member_id)
+
+    for membership in memberships:
+        old_start = parse_date(membership["start_date"])
+
+        old_end = parse_date(membership["end_date"])
+
+        if old_start is None or old_end is None:
+            continue
+
+        overlap = new_start <= old_end and new_end >= old_start
+
+        if overlap:
+            return True
+
+    return False
+
+
+# =========================
+# CREATE MEMBERSHIP
+# =========================
+
+
+def create_membership(member_id: str, plan: str, start: date, method: str, amount=None):
+    """
+    Create a membership and automatically
+    create its payment.
+
+    Used for both:
+    - New membership
+    - Renewal
+    """
+
+    # -------------------------
+    # Validate Member
+    # -------------------------
+
+    if not get_member(member_id):
+        raise ValueError("Member does not exist")
+
+    # -------------------------
+    # Validate Plan
+    # -------------------------
+
+    if plan not in PLANS:
+        raise ValueError("Invalid membership plan")
+
+    # -------------------------
+    # Validate Start Date
+    # -------------------------
+
+    if not isinstance(start, date):
+        raise ValueError("Invalid membership start date")
+
+    # -------------------------
+    # Validate Payment Method
+    # -------------------------
+
+    if method not in PAYMENT_METHODS:
+        raise ValueError("Invalid payment method")
+
+    # -------------------------
+    # Calculate End Date
+    # -------------------------
+
+    months = PLANS[plan]["months"]
+
+    end = add_months(start, months) - timedelta(days=1)
+
+    # -------------------------
+    # Prevent Overlap
+    # -------------------------
+
+    if has_membership_overlap(member_id, start, end):
+        raise ValueError("Member already has a membership covering this period")
+
+    # -------------------------
+    # Determine Price
+    # -------------------------
+
+    if amount is None:
+        amount = PLANS[plan]["price"]
+
+    # -------------------------
+    # Create Membership Object
+    # -------------------------
+
+    membership = Membership(
+        membership_id=next_id("memberships", "membership_id", "MS"),
+        member_id=member_id,
+        plan=plan,
+        start_date=start.strftime(DATE_FORMAT),
+        end_date=end.strftime(DATE_FORMAT),
+    )
+
+    # -------------------------
+    # Save Membership
+    # -------------------------
+
     memberships = load("memberships")
-    memberships.append(membership)
+
+    memberships.append(membership.to_dict())
+
     save("memberships", memberships)
 
-    payment = add_payment(
-        member_id,
-        membership["membership_id"],
-        amount,
-        start.strftime(DATE_FORMAT),
-        method,
-    )
-    return membership, payment
+    # -------------------------
+    # Create Automatic Payment
+    # -------------------------
+
+    try:
+        payment = add_payment(
+            member_id=member_id,
+            membership_id=(membership.membership_id),
+            amount=amount,
+            payment_date=start.strftime(DATE_FORMAT),
+            method=method,
+        )
+
+    except Exception:
+        # -------------------------
+        # Rollback Membership
+        # if payment fails
+        # -------------------------
+
+        memberships = [
+            item
+            for item in memberships
+            if (item["membership_id"] != membership.membership_id)
+        ]
+
+        save("memberships", memberships)
+
+        raise
+
+    return (membership, payment)
 
 
 # =========================
@@ -195,23 +482,33 @@ def add_payment(
     method: str,
 ) -> Payment:
 
+    # -------------------------
+    # Validate Member
+    # -------------------------
+
     if not get_member(member_id):
         raise ValueError("Member does not exist")
 
-    membership = next(
-        (
-            item
-            for item in load("memberships")
-            if item["membership_id"] == membership_id
-        ),
-        None,
-    )
+    # -------------------------
+    # Validate Membership
+    # -------------------------
+
+    membership = get_membership(membership_id)
 
     if membership is None:
         raise ValueError("Membership does not exist")
 
+    # -------------------------
+    # Membership must belong
+    # to this member
+    # -------------------------
+
     if membership["member_id"] != member_id:
         raise ValueError("Membership does not belong to this member")
+
+    # -------------------------
+    # Create Payment Object
+    # -------------------------
 
     payment = Payment(
         payment_id=next_id("payments", "payment_id", "P"),
@@ -221,6 +518,10 @@ def add_payment(
         payment_date=payment_date,
         payment_method=method,
     )
+
+    # -------------------------
+    # Save Payment
+    # -------------------------
 
     payments = load("payments")
 
@@ -236,19 +537,22 @@ def add_payment(
 # =========================
 
 
-def open_attendance(member_id):
-    """The member's attendance record that has no check-out yet, if any."""
+def open_attendance(member_id: str):
+
     return next(
         (
-            a
-            for a in load("attendance")
-            if a["member_id"] == member_id and not a.get("check_out")
+            attendance
+            for attendance in load("attendance")
+            if (
+                attendance["member_id"] == member_id and not attendance.get("check_out")
+            )
         ),
         None,
     )
 
 
-def add_attendance(member_id, day, check_in):
+def add_attendance(member_id: str, day: str, check_in: str):
+
     record = {
         "attendance_id": next_id("attendance", "attendance_id", "A"),
         "member_id": member_id,
@@ -256,7 +560,11 @@ def add_attendance(member_id, day, check_in):
         "check_in": check_in,
         "check_out": "",
     }
+
     records = load("attendance")
+
     records.append(record)
+
     save("attendance", records)
+
     return record
