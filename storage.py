@@ -568,3 +568,192 @@ def add_attendance(member_id: str, day: str, check_in: str):
     save("attendance", records)
 
     return record
+
+
+# =========================
+# DASHBOARD
+# =========================
+
+
+def dashboard_stats() -> dict:
+
+    members = load("members")
+    trainers = load("trainers")
+    memberships = load("memberships")
+    payments = load("payments")
+    attendance = load("attendance")
+
+    # -------------------------
+    # Member Status Counts
+    # -------------------------
+
+    active_members = 0
+    upcoming_members = 0
+    expired_members = 0
+    no_membership = 0
+
+    for member in members:
+        status = member_status(member["member_id"], memberships)
+
+        if status == "Active":
+            active_members += 1
+
+        elif status == "Upcoming":
+            upcoming_members += 1
+
+        elif status == "Expired":
+            expired_members += 1
+
+        elif status == "No Membership":
+            no_membership += 1
+
+    # -------------------------
+    # Membership Status Counts
+    # -------------------------
+
+    active_memberships = 0
+    upcoming_memberships = 0
+    expired_memberships = 0
+
+    for membership in memberships:
+        status = membership_status(membership)
+
+        if status == "Active":
+            active_memberships += 1
+
+        elif status == "Upcoming":
+            upcoming_memberships += 1
+
+        elif status == "Expired":
+            expired_memberships += 1
+
+    # -------------------------
+    # Today's Attendance
+    # -------------------------
+
+    today = date.today()
+
+    today_attendance = sum(
+        1 for record in attendance if record.get("date") == today.strftime(DATE_FORMAT)
+    )
+
+    # -------------------------
+    # Revenue This Month
+    # -------------------------
+
+    monthly_revenue = 0.0
+
+    for payment in payments:
+        payment_date = parse_date(payment.get("payment_date", ""))
+
+        if (
+            payment_date
+            and payment_date.year == today.year
+            and payment_date.month == today.month
+        ):
+            monthly_revenue += float(payment.get("amount", 0))
+
+    return {
+        "total_members": len(members),
+        "total_trainers": len(trainers),
+        "active_members": active_members,
+        "upcoming_members": upcoming_members,
+        "expired_members": expired_members,
+        "no_membership": no_membership,
+        "active_memberships": active_memberships,
+        "upcoming_memberships": upcoming_memberships,
+        "expired_memberships": expired_memberships,
+        "today_attendance": today_attendance,
+        "monthly_revenue": monthly_revenue,
+    }
+
+
+def recent_activity(limit: int = 10) -> list[str]:
+
+    events = []
+
+    today = date.today()
+
+    # =========================
+    # PAYMENTS
+    # =========================
+
+    for payment in load("payments"):
+        payment_date = parse_date(payment.get("payment_date", ""))
+
+        if payment_date is None:
+            continue
+
+        events.append(
+            {
+                "date": datetime.combine(payment_date, datetime.min.time()),
+                "text": (
+                    f"Payment {payment['payment_id']} - "
+                    f"{member_name(payment['member_id'])} - "
+                    f"{money(payment['amount'])} - "
+                    f"{payment['payment_method']}"
+                ),
+            }
+        )
+
+    # =========================
+    # ATTENDANCE
+    # =========================
+
+    for record in load("attendance"):
+        attendance_date = parse_date(record.get("date", ""))
+
+        check_in = parse_time(record.get("check_in", ""))
+
+        if attendance_date is None:
+            continue
+
+        if check_in:
+            event_time = datetime.strptime(check_in, "%H:%M").time()
+
+        else:
+            event_time = datetime.min.time()
+
+        events.append(
+            {
+                "date": datetime.combine(attendance_date, event_time),
+                "text": (
+                    f"Attendance {record['attendance_id']} - "
+                    f"{member_name(record['member_id'])} - "
+                    f"Check in {record.get('check_in', '-')}"
+                ),
+            }
+        )
+
+    # =========================
+    # MEMBERSHIP STARTS
+    # =========================
+
+    for membership in load("memberships"):
+        start_date = parse_date(membership.get("start_date", ""))
+
+        if start_date is None or start_date > today:
+            continue
+
+        events.append(
+            {
+                "date": datetime.combine(start_date, datetime.min.time()),
+                "text": (
+                    f"Membership {membership['membership_id']} - "
+                    f"{member_name(membership['member_id'])} - "
+                    f"{membership['plan']} - "
+                    f"{membership_status(membership)}"
+                ),
+            }
+        )
+
+    # =========================
+    # SORT
+    # =========================
+
+    events.sort(key=lambda event: event["date"], reverse=True)
+
+    return [
+        (f"{event['date'].strftime('%Y-%m-%d')} - {event['text']}")
+        for event in events[:limit]
+    ]
