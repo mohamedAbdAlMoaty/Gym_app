@@ -6,6 +6,7 @@ from pathlib import Path
 
 from models.payment import Payment
 from models.membership import Membership
+from models.attendance import Attendance
 
 
 # =========================
@@ -254,6 +255,19 @@ def latest_membership(member_id: str, memberships=None):
 # =========================
 # MEMBERSHIP STATUS
 # =========================
+
+
+def has_active_membership_on(member_id: str, target_date: date) -> bool:
+
+    for membership in member_memberships(member_id):
+        start = parse_date(membership.get("start_date", ""))
+
+        end = parse_date(membership.get("end_date", ""))
+
+        if start and end and start <= target_date <= end:
+            return True
+
+    return False
 
 
 def membership_status(membership: dict) -> str:
@@ -551,23 +565,37 @@ def open_attendance(member_id: str):
     )
 
 
-def add_attendance(member_id: str, day: str, check_in: str):
+def add_attendance(member_id: str, day: str, check_in: str) -> Attendance:
 
-    record = {
-        "attendance_id": next_id("attendance", "attendance_id", "A"),
-        "member_id": member_id,
-        "date": day,
-        "check_in": check_in,
-        "check_out": "",
-    }
+    attendance = Attendance(
+        attendance_id=next_id("attendance", "attendance_id", "A"),
+        member_id=member_id,
+        attendance_date=day,
+        check_in=check_in,
+    )
 
     records = load("attendance")
 
-    records.append(record)
+    records.append(attendance.to_dict())
 
     save("attendance", records)
 
-    return record
+    return attendance
+
+
+def member_has_history(member_id: str) -> bool:
+
+    has_memberships = any(
+        item.get("member_id") == member_id for item in load("memberships")
+    )
+
+    has_payments = any(item.get("member_id") == member_id for item in load("payments"))
+
+    has_attendance = any(
+        item.get("member_id") == member_id for item in load("attendance")
+    )
+
+    return has_memberships or has_payments or has_attendance
 
 
 # =========================
