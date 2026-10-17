@@ -115,19 +115,31 @@ class MembershipsView:
 
         rows = []
 
-        memberships = Json_manager().All_memberships()
+        try:
+            memberships = Json_manager().All_memberships()
+
+        except Exception as error:
+            messagebox.showerror(
+                "Memberships Error",
+                (f"Could not load memberships:\n{error}"),
+            )
+
+            return
 
         for membership in memberships:
             member_name = storage.member_name(membership.member_id)
 
-            searchable_text = (
-                f"{membership.membership_id} {membership.member_id} {member_name}"
+            status = membership.status
+
+            searchable = (
+                f"{membership.membership_id} "
+                f"{membership.member_id} "
+                f"{member_name} "
+                f"{membership.plan}"
             ).lower()
 
-            if text and text not in searchable_text:
+            if text and text not in searchable:
                 continue
-
-            status = membership.status
 
             if wanted != "All" and status != wanted:
                 continue
@@ -171,7 +183,8 @@ class MembershipsView:
 
         if not membership_id:
             messagebox.showwarning(
-                "Renew Membership", ("Please select a membership first.")
+                "Renew Membership",
+                ("Please select a membership first."),
             )
 
             return
@@ -180,6 +193,14 @@ class MembershipsView:
 
         if not membership:
             messagebox.showerror("Renew Membership", "Membership not found.")
+
+            return
+
+        if not storage.get_member(membership["member_id"]):
+            messagebox.showerror(
+                "Renew Membership",
+                ("The member linked to this membership no longer exists."),
+            )
 
             return
 
@@ -198,7 +219,7 @@ class MembershipsView:
         dialog_title(window, title)
 
         # -------------------------
-        # Member
+        # MEMBER
         # -------------------------
 
         if renewing:
@@ -221,7 +242,7 @@ class MembershipsView:
         )
 
         # -------------------------
-        # Plan
+        # PLAN
         # -------------------------
 
         plans = plan_choices()
@@ -246,7 +267,7 @@ class MembershipsView:
         )
 
         # -------------------------
-        # Start Date
+        # START DATE
         # -------------------------
 
         if renewing:
@@ -264,7 +285,7 @@ class MembershipsView:
         )
 
         # -------------------------
-        # Payment Method
+        # PAYMENT METHOD
         # -------------------------
 
         method_combo = add_combo(
@@ -329,6 +350,15 @@ class MembershipsView:
             except ValueError as error:
                 messagebox.showerror(
                     "Validation Error",
+                    str(error),
+                    parent=window,
+                )
+
+                return
+
+            except Exception as error:
+                messagebox.showerror(
+                    "Membership Error",
                     str(error),
                     parent=window,
                 )

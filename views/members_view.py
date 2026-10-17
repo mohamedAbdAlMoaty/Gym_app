@@ -1,4 +1,3 @@
-
 import customtkinter as ctk
 from tkinter import messagebox
 
@@ -22,7 +21,7 @@ from views.common import (
     choice_id,
 )
 
-STATUS_FILTERS = ["All", "Active", "Expired", "No Membership"]
+STATUS_FILTERS = ["All", "Active", "Upcoming", "Expired", "No Membership"]
 
 
 class MembersView:
@@ -119,12 +118,16 @@ class MembersView:
     # =========================
 
     def refresh_table(self):
+
         text = self.search_entry.get().strip().lower()
+
+        wanted = self.status_filter.get()
 
         manager = Json_manager()
 
         if text:
             members = manager.search_on_members(text)
+
         else:
             members = manager.All_members()
 
@@ -133,21 +136,21 @@ class MembersView:
         for member in members:
             trainer = manager.get_trainer_by_ID(member.trainer_id)
 
-            trainer_name = (
-                trainer.get_name()
-                if trainer
-                else "No trainer"
-            )
+            trainer_name = trainer.name if trainer else "No trainer"
 
-            # Status is a placeholder until membership status is connected.
+            status = storage.member_status(member.member_id)
+
+            if wanted != "All" and status != wanted:
+                continue
+
             rows.append(
                 (
                     member.member_id,
-                    member.get_name(),
-                    member.get_phone(),
-                    member.get_email(),
+                    member.name,
+                    member.phone,
+                    member.email,
                     trainer_name,
-                    "test",
+                    status,
                 )
             )
 
@@ -225,9 +228,7 @@ class MembersView:
             window,
             "Trainer",
             trainer_choices(),
-            trainer_choice_for(member.get("trainer_id"))
-            if editing
-            else "Unassigned",
+            trainer_choice_for(member.get("trainer_id")) if editing else "Unassigned",
         )
 
         add_save_button(
@@ -266,21 +267,15 @@ class MembersView:
         }
 
         if not fields["name"]:
-            messagebox.showerror(
-                "Error", "Name is required", parent=window
-            )
+            messagebox.showerror("Error", "Name is required", parent=window)
             return
 
         if not fields["phone"]:
-            messagebox.showerror(
-                "Error", "Phone is required", parent=window
-            )
+            messagebox.showerror("Error", "Phone is required", parent=window)
             return
 
         if not fields["email"]:
-            messagebox.showerror(
-                "Error", "Email is required", parent=window
-            )
+            messagebox.showerror("Error", "Email is required", parent=window)
             return
 
         if fields["gender"] not in ["Male", "Female"]:
@@ -289,6 +284,35 @@ class MembersView:
                 "Please select a valid gender",
                 parent=window,
             )
+            return
+
+        if storage.parse_date(fields["date_of_birth"]) is None:
+            messagebox.showerror(
+                "Error",
+                "Date of birth must use YYYY-MM-DD",
+                parent=window,
+            )
+
+            return
+
+        if "@" not in fields["email"] or "." not in fields["email"].split("@")[-1]:
+            messagebox.showerror(
+                "Error",
+                "Please enter a valid email address",
+                parent=window,
+            )
+
+            return
+
+        phone_check = fields["phone"].replace("+", "", 1)
+
+        if not phone_check.isdigit():
+            messagebox.showerror(
+                "Error",
+                "Phone must contain numbers only",
+                parent=window,
+            )
+
             return
 
         members = storage.load("members")
@@ -397,6 +421,7 @@ class MembersView:
     # =========================
 
     def delete_member(self):
+
         member_id = selected_id(self.member_table)
 
         if not member_id:
@@ -404,11 +429,24 @@ class MembersView:
                 "Delete Member",
                 "Please select a member first.",
             )
+
+            return
+
+        if storage.member_has_history(member_id):
+            messagebox.showerror(
+                "Delete Member",
+                (
+                    "Cannot delete this member "
+                    "because they have membership, "
+                    "payment, or attendance history."
+                ),
+            )
+
             return
 
         confirm = messagebox.askyesno(
             "Delete Member",
-            f"Are you sure you want to delete {member_id}?",
+            (f"Are you sure you want to delete {member_id}?"),
         )
 
         if not confirm:
@@ -416,11 +454,7 @@ class MembersView:
 
         members = storage.load("members")
 
-        members = [
-            item
-            for item in members
-            if item["member_id"] != member_id
-        ]
+        members = [item for item in members if item["member_id"] != member_id]
 
         storage.save("members", members)
 
