@@ -61,5 +61,14 @@
     "date_of_birth": "1994-09-24",
     "gender": "Male",
     "trainer_id": "T001"
+  },
+  {
+    "member_id": "M011",
+    "name": "test3",
+    "phone": "1252552",
+    "email": "testettetst@mail",
+    "date_of_birth": "1994-09-24",
+    "gender": "Male",
+    "trainer_id": null
   }
 ]
