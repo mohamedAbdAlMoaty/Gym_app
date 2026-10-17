@@ -6,12 +6,12 @@ from pathlib import Path
 
 
 class Json_manager:
-    WORK_DIR = "data"
+    WORK_DIR = Path(__file__).resolve().parent / "data"
 
     def read_from_json_file(self, filename):
 
-        file_path = Path(self.WORK_DIR) / f"{filename}.json"
-        with open(file_path, "r") as f:
+        file_path = self.WORK_DIR / f"{filename}.json"
+        with open(file_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
     def append_on_json_file(self, filename, data):

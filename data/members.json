@@ -9,18 +9,9 @@
     "trainer_id": "T001"
   },
   {
-    "member_id": "M002",
-    "name": "Mohamed Hassan",
-    "phone": "01798765432",
-    "email": "mohamed.hassan@gmail.com",
-    "date_of_birth": "1992-07-20",
-    "gender": "Male",
-    "trainer_id": "T002"
-  },
-  {
     "member_id": "M004",
     "name": "John Smith",
-    "phone": "01733333333",
+    "phone": "01733333334",
     "email": "john.smith@gmail.com",
     "date_of_birth": "1990-05-25",
     "gender": "Male",
@@ -51,6 +42,24 @@
     "email": "mi1458@gmail.com",
     "date_of_birth": "2005-09-15",
     "gender": "Female",
+    "trainer_id": "T001"
+  },
+  {
+    "member_id": "M009",
+    "name": "test",
+    "phone": "0105060709",
+    "email": "test_test@mail.com",
+    "date_of_birth": "1994-09-24",
+    "gender": "Male",
+    "trainer_id": ""
+  },
+  {
+    "member_id": "M010",
+    "name": "test2",
+    "phone": "01132525",
+    "email": "test_test@mail.com",
+    "date_of_birth": "1994-09-24",
+    "gender": "Male",
     "trainer_id": "T001"
   }
 ]
