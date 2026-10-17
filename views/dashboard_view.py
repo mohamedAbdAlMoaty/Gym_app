@@ -4,6 +4,23 @@ import storage
 
 from views.common import page_title
 
+from views.theme import (
+    BG,
+    SURFACE,
+    SURFACE_2,
+    BORDER,
+    ACCENT,
+    ACCENT_HOVER,
+    CYAN,
+    GREEN,
+    AMBER,
+    RED,
+    TEXT,
+    TEXT_2,
+    MUTED,
+    FONT,
+)
+
 
 class DashboardView:
     def __init__(self, parent):
@@ -20,138 +37,337 @@ class DashboardView:
 
         page_title(self.parent, "Dashboard")
 
-        # -------------------------
-        # Toolbar
-        # -------------------------
+        # =========================
+        # TOP BAR
+        # =========================
 
         top_bar = ctk.CTkFrame(self.parent, fg_color="transparent")
 
-        top_bar.pack(fill="x", padx=30, pady=(0, 5))
+        top_bar.pack(fill="x", padx=34, pady=(0, 8))
+
+        ctk.CTkLabel(
+            top_bar,
+            text="LIVE DATA",
+            font=ctk.CTkFont(family=FONT, size=10, weight="bold"),
+            text_color=GREEN,
+        ).pack(side="left")
 
         ctk.CTkButton(
-            top_bar, text="Refresh", width=100, command=self.refresh_dashboard
+            top_bar,
+            text="↻  Refresh",
+            width=110,
+            height=36,
+            corner_radius=10,
+            fg_color=SURFACE_2,
+            hover_color=ACCENT,
+            border_width=1,
+            border_color=BORDER,
+            font=ctk.CTkFont(family=FONT, size=12, weight="bold"),
+            command=(self.refresh_dashboard),
         ).pack(side="right")
 
-        # -------------------------
-        # Statistics
-        # -------------------------
+        # =========================
+        # GET LIVE STATS
+        # =========================
 
         stats = storage.dashboard_stats()
 
+        # =========================
+        # STAT CARDS
+        # =========================
+
         cards_frame = ctk.CTkFrame(self.parent, fg_color="transparent")
 
-        cards_frame.pack(fill="x", padx=30)
+        cards_frame.pack(fill="x", padx=26)
 
         cards = [
-            ("Total Members", str(stats["total_members"])),
-            ("Active Members", str(stats["active_members"])),
-            ("No Membership", str(stats["no_membership"])),
-            ("Total Trainers", str(stats["total_trainers"])),
-            ("Today's Attendance", str(stats["today_attendance"])),
-            ("Revenue This Month", storage.money(stats["monthly_revenue"])),
+            ("Total Members", str(stats["total_members"]), "MEMBERS", ACCENT),
+            ("Active Members", str(stats["active_members"]), "ACTIVE", GREEN),
+            ("No Membership", str(stats["no_membership"]), "PENDING", AMBER),
+            ("Total Trainers", str(stats["total_trainers"]), "COACHES", CYAN),
+            ("Today's Attendance", str(stats["today_attendance"]), "TODAY", GREEN),
+            (
+                "Revenue This Month",
+                storage.money(stats["monthly_revenue"]),
+                "REVENUE",
+                CYAN,
+            ),
         ]
 
-        # -------------------------
-        # Cards - 2 rows x 3
-        # -------------------------
-
-        for index, (title, value) in enumerate(cards):
+        for index, (title, value, badge, color) in enumerate(cards):
             row = index // 3
+
             column = index % 3
 
-            self.create_card(cards_frame, title, value, row, column)
+            self.create_card(cards_frame, title, value, badge, color, row, column)
+
+        # =========================
+        # LOWER AREA
+        # =========================
+
+        lower = ctk.CTkFrame(self.parent, fg_color="transparent")
+
+        lower.pack(fill="both", expand=True, padx=34, pady=(14, 24))
+
+        lower.grid_columnconfigure(0, weight=1)
+
+        lower.grid_columnconfigure(1, weight=2)
+
+        lower.grid_rowconfigure(0, weight=1)
 
         # =========================
         # MEMBERSHIP OVERVIEW
         # =========================
 
-        overview_frame = ctk.CTkFrame(self.parent)
+        overview = ctk.CTkFrame(
+            lower,
+            fg_color=SURFACE,
+            corner_radius=16,
+            border_width=1,
+            border_color=BORDER,
+        )
 
-        overview_frame.pack(fill="x", padx=30, pady=(20, 10))
+        overview.grid(row=0, column=0, padx=(0, 8), sticky="nsew")
 
         ctk.CTkLabel(
-            overview_frame,
-            text="Membership Overview",
-            font=ctk.CTkFont(size=20, weight="bold"),
-        ).pack(anchor="w", padx=20, pady=(15, 10))
+            overview,
+            text="Membership Health",
+            font=ctk.CTkFont(family=FONT, size=18, weight="bold"),
+            text_color=TEXT,
+        ).pack(anchor="w", padx=20, pady=(18, 2))
 
-        membership_stats = ctk.CTkFrame(overview_frame, fg_color="transparent")
+        ctk.CTkLabel(
+            overview,
+            text=("Current membership distribution"),
+            font=ctk.CTkFont(family=FONT, size=11),
+            text_color=MUTED,
+        ).pack(anchor="w", padx=20, pady=(0, 15))
 
-        membership_stats.pack(fill="x", padx=20, pady=(0, 15))
-
-        self.create_small_stat(
-            membership_stats, "Active", stats["active_memberships"], 0
+        # Active
+        self.create_status_row(
+            overview,
+            "Active",
+            stats["active_memberships"],
+            GREEN,
         )
 
-        self.create_small_stat(
-            membership_stats, "Upcoming", stats["upcoming_memberships"], 1
+        # Upcoming
+        self.create_status_row(
+            overview,
+            "Upcoming",
+            stats["upcoming_memberships"],
+            AMBER,
         )
 
-        self.create_small_stat(
-            membership_stats, "Expired", stats["expired_memberships"], 2
+        # Expired
+        self.create_status_row(
+            overview,
+            "Expired",
+            stats["expired_memberships"],
+            RED,
         )
 
         # =========================
         # RECENT ACTIVITY
         # =========================
 
+        activity_card = ctk.CTkFrame(
+            lower,
+            fg_color=SURFACE,
+            corner_radius=16,
+            border_width=1,
+            border_color=BORDER,
+        )
+
+        activity_card.grid(row=0, column=1, padx=(8, 0), sticky="nsew")
+
+        activity_card.grid_rowconfigure(1, weight=1)
+
+        activity_card.grid_columnconfigure(0, weight=1)
+
+        # -------------------------
+        # Activity Header
+        # -------------------------
+
+        activity_header = ctk.CTkFrame(activity_card, fg_color="transparent")
+
+        activity_header.grid(row=0, column=0, sticky="ew", padx=20, pady=(18, 8))
+
         ctk.CTkLabel(
-            self.parent,
+            activity_header,
             text="Recent Activity",
-            font=ctk.CTkFont(size=20, weight="bold"),
-        ).pack(anchor="w", padx=30, pady=(20, 10))
+            font=ctk.CTkFont(family=FONT, size=18, weight="bold"),
+            text_color=TEXT,
+        ).pack(side="left")
 
-        activity = ctk.CTkTextbox(self.parent, height=180)
+        ctk.CTkLabel(
+            activity_header,
+            text="Latest 10 events",
+            font=ctk.CTkFont(family=FONT, size=10),
+            text_color=MUTED,
+        ).pack(side="right")
 
-        activity.pack(fill="both", expand=True, padx=30, pady=(0, 20))
+        # -------------------------
+        # Scrollable Events
+        # -------------------------
+
+        events_frame = ctk.CTkScrollableFrame(
+            activity_card,
+            fg_color="transparent",
+            corner_radius=0,
+        )
+
+        events_frame.grid(row=1, column=0, sticky="nsew", padx=12, pady=(0, 12))
 
         events = storage.recent_activity(limit=10)
 
         if events:
-            activity.insert("1.0", "\n".join(f"• {event}" for event in events))
+            for event in events:
+                self.create_activity_row(events_frame, event)
 
         else:
-            activity.insert("1.0", "No activity yet.")
-
-        activity.configure(state="disabled")
+            ctk.CTkLabel(
+                events_frame,
+                text="No activity yet.",
+                font=ctk.CTkFont(family=FONT, size=12),
+                text_color=MUTED,
+            ).pack(pady=30)
 
     # =========================
-    # MAIN CARD
+    # MAIN STAT CARD
     # =========================
 
-    def create_card(self, parent, title, value, row, column):
+    def create_card(self, parent, title, value, badge, color, row, column):
 
-        card = ctk.CTkFrame(parent, height=110)
+        card = ctk.CTkFrame(
+            parent,
+            height=124,
+            fg_color=SURFACE,
+            corner_radius=16,
+            border_width=1,
+            border_color=BORDER,
+        )
 
         card.grid(row=row, column=column, padx=8, pady=8, sticky="nsew")
 
-        parent.grid_columnconfigure(column, weight=1, uniform="cards")
+        card.grid_propagate(False)
 
-        ctk.CTkLabel(card, text=title, font=ctk.CTkFont(size=14)).pack(
-            pady=(18, 5), padx=10
+        parent.grid_columnconfigure(column, weight=1, uniform="dashboard_cards")
+
+        # Colored line
+        accent = ctk.CTkFrame(
+            card,
+            width=4,
+            corner_radius=4,
+            fg_color=color,
         )
 
-        ctk.CTkLabel(card, text=value, font=ctk.CTkFont(size=26, weight="bold")).pack(
-            pady=(0, 15)
-        )
+        accent.pack(side="left", fill="y", padx=(0, 14), pady=14)
 
-    # =========================
-    # SMALL MEMBERSHIP STAT
-    # =========================
+        content = ctk.CTkFrame(card, fg_color="transparent")
 
-    def create_small_stat(self, parent, title, value, column):
+        content.pack(side="left", fill="both", expand=True, pady=14)
 
-        frame = ctk.CTkFrame(parent)
+        top = ctk.CTkFrame(content, fg_color="transparent")
 
-        frame.grid(row=0, column=column, padx=8, sticky="nsew")
-
-        parent.grid_columnconfigure(column, weight=1, uniform="membership_stats")
-
-        ctk.CTkLabel(frame, text=title).pack(pady=(12, 3))
+        top.pack(fill="x")
 
         ctk.CTkLabel(
-            frame, text=str(value), font=ctk.CTkFont(size=22, weight="bold")
-        ).pack(pady=(0, 12))
+            top,
+            text=title,
+            font=ctk.CTkFont(family=FONT, size=12, weight="bold"),
+            text_color=MUTED,
+        ).pack(side="left")
+
+        # Small badge
+        ctk.CTkLabel(
+            top,
+            text=badge,
+            font=ctk.CTkFont(family=FONT, size=9, weight="bold"),
+            text_color=color,
+        ).pack(side="right", padx=14)
+
+        # Value
+        ctk.CTkLabel(
+            content,
+            text=value,
+            font=ctk.CTkFont(family=FONT, size=27, weight="bold"),
+            text_color=TEXT,
+        ).pack(anchor="w", pady=(12, 0))
+
+    # =========================
+    # MEMBERSHIP STATUS ROW
+    # =========================
+
+    def create_status_row(self, parent, title, value, color):
+
+        row = ctk.CTkFrame(
+            parent,
+            fg_color=SURFACE_2,
+            corner_radius=12,
+            height=58,
+        )
+
+        row.pack(fill="x", padx=18, pady=6)
+
+        row.pack_propagate(False)
+
+        # Status Dot
+        dot = ctk.CTkFrame(
+            row,
+            width=10,
+            height=10,
+            corner_radius=5,
+            fg_color=color,
+        )
+
+        dot.pack(side="left", padx=(16, 10))
+
+        ctk.CTkLabel(
+            row,
+            text=title,
+            font=ctk.CTkFont(family=FONT, size=12, weight="bold"),
+            text_color=TEXT_2,
+        ).pack(side="left")
+
+        ctk.CTkLabel(
+            row,
+            text=str(value),
+            font=ctk.CTkFont(family=FONT, size=18, weight="bold"),
+            text_color=color,
+        ).pack(side="right", padx=16)
+
+    # =========================
+    # ACTIVITY ROW
+    # =========================
+
+    def create_activity_row(self, parent, event):
+
+        row = ctk.CTkFrame(
+            parent,
+            fg_color=SURFACE_2,
+            corner_radius=10,
+        )
+
+        row.pack(fill="x", pady=4)
+
+        # Accent line
+        ctk.CTkFrame(
+            row,
+            width=4,
+            height=36,
+            corner_radius=3,
+            fg_color=ACCENT,
+        ).pack(side="left", padx=(10, 10), pady=8)
+
+        ctk.CTkLabel(
+            row,
+            text=event,
+            anchor="w",
+            justify="left",
+            font=ctk.CTkFont(family=FONT, size=11),
+            text_color=TEXT_2,
+        ).pack(side="left", fill="x", expand=True, padx=(0, 12), pady=10)
 
     # =========================
     # REFRESH
