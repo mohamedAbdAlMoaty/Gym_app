@@ -39,6 +39,13 @@
     "member_id": "M001",
     "date": "2026-10-08",
     "check_in": "16:39",
+    "check_out": "17:11"
+  },
+  {
+    "attendance_id": 1,
+    "member_id": "M004",
+    "date": "2026-10-17",
+    "check_in": "17:11",
     "check_out": ""
   }
 ]
