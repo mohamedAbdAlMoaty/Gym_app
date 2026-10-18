@@ -1,1 +1,3 @@
-customtkinter
+# GymFlow external dependency
+# Recommended Python version: 3.10+
+customtkinter==5.2.2
